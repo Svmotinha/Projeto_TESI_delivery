@@ -1,0 +1,124 @@
+@startuml sistema
+title Sistema de Delivery de Sushi
+class Cliente {
+
+}
+
+class Funcionario {
+    - nome: str
+    - cpf: str
+    - cargo: str
+}
+
+class Pagamento {
+    - cod_pagamento: str
+    - data_hora: date
+    - valor: float
+    - metodo_pagamento: str
+    + adicionar_cupom(): bool
+    + processar_pagamento(): bool
+    + confirmar(): bool
+    + cancelar(): bool
+}
+
+class Cardapio {
+    - id_cardapio: str
+    - nome: str
+    - preco: float
+    - descricao: str
+    + imprimirDados()
+    + adicionar(): bool
+    + remover(): bool
+}
+
+class Pedido{
+    - cod_pedido: str
+    - status: str
+    - total_pedido: float
+    - data: date
+    - prazo_entrega: str
+    - visualizar_historico: bool
+    + imprimirDados()
+}
+
+class Carrinho {
+    - data_hora: date
+    - status: str
+    - valor_total: float
+    - endereco_entrega: str
+    - editar_carrinho(): bool
+    - confirmar(): bool
+    + cancelar(): bool
+    + imprimirDados()
+}
+
+class ItemPedido {
+    - id_cardapio: str
+    - quantidade: int
+}
+
+class Cadastro {
+    - e-mail: str
+    # senha: str
+    - localizacao: str
+    # cpf: str
+    + imprimirDados()
+    ~ validarCPF(cpf: str): bool
+    ~ validarEmail(email: str): bool
+    
+}
+
+class Login {
+    - e-mail: str
+    # senha: str
+    ~ validarCadrasto(cadrasto: str): bool
+}
+
+class Cupom {
+    - id_cupom: str
+    - taxa: float
+    - data_validade: date
+    - utilizado: bool
+    - minimo: float
+    ~ validar_cupom(id_cupom: str)
+}
+
+class Entrega {
+    - cod_rastreamento: str
+    - data_prevista: date
+    + imprimirDados()
+}
+
+class Historico {
+    + imprimirDados()
+
+} 
+
+Cliente -[hidden]-> Funcionario
+Cliente "0..1" --> "1..*" Cardapio : "acessa"
+'Cliente "1" --> "1" Cadastro : "deseja"
+'Cadastro "1" --> "'" Cardapio : "continua"
+'Funcionario "1" -- "0..*" Pedido : "gerencia"
+Login "1..*" --> "1..1" Pagamento: "validado"
+Login "0..1" --> "0..1" Cadastro: "invalidado"
+Cadastro "1..1" --> "1..1" Login: "Aprovado"
+Cadastro "0..1" --> "0..1" Cadastro: "recusado"
+Carrinho"1..1" --> "1..1" Cardapio : "editar"
+Carrinho "1..*" o-- "0..*" ItemPedido : "Adiciona"
+Carrinho "1..1" --> "1..*" Login: "realiza"
+Cardapio "1..*" --> "0..1" ItemPedido : "seleciona"
+Pagamento "1..1" --> "0..*" Cupom : "adicionar"
+Pagamento "1..1" o-- "1..1" Pedido : "aceito"
+Cupom "1..1" --> "1..1" Pagamento : "valido"
+Cupom "0..*" --> "0..*" Cupom : invalidado
+Funcionario "0..*" --o "0..*" Pedido : "gerencia"
+Pagamento "1" --> "1" Pagamento : "Pagamento recusado"
+Pedido "1" --> "1" Entrega : "vai"
+Entrega "1" --> "1" Cliente : "envia"
+Pedido "1" --> "1" Historico : "sim"
+Historico "1" <--> "1" Login : "associado"
+Pagamento "1" --> "1" Carrinho: "cancelou"
+
+
+
+@enduml

@@ -1,0 +1,21 @@
+@startuml diagram
+title Sistema de Delivery de Sushi
+
+actor Cliente
+actor Funcionario
+actor Entrega
+
+(Realizar login) as UC06
+(Gerenciar carrinho) as UC09
+(Gerenciar pedido) as UC05
+(Entregar pedido) as UC08
+(Concluir pedido) as UC02
+
+Cliente --> UC06
+Cliente --> UC09
+Cliente --> UC02
+
+Funcionario --> UC05
+Entrega --> UC08
+
+@enduml

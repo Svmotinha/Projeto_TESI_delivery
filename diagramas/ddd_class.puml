@@ -1,0 +1,57 @@
+@startuml sistema
+title Sistema de Delivery de Sushi
+class Funcionario {
+    - nome: str
+    - cpf: str
+    - cargo: str
+}
+
+
+class Produto {
+    - id_item: str
+    - nome: str
+    - preco: float
+    - descricao: str
+    + imprimirDados()
+    + adicionar(): bool
+    + remover(): bool
+}
+
+class Pedido {
+    - data_hora: date
+    - status: str
+    - valor_total: float
+    - endereco_entrega: str
+    - editar_carrinho(): bool
+    - confirmar(): bool
+    + cancelar(): bool
+    + imprimirDados()
+}
+
+class ItemPedido {
+    - id_cardapio: str
+    - quantidade: int
+}
+
+class Cliente {
+    - e-mail: str
+    # senha: str
+    # cpf: str
+    + imprimirDados()
+    ~ validarCPF(cpf: str): bool
+    ~ validarEmail(email: str): bool
+    
+}
+
+class Entrega {
+    - cod_rastreamento: str
+    - data_prevista: date
+    + imprimirDados()
+}
+
+Cliente "0..1" -- "1..*" Produto : "acessa"
+Produto "1..*" -- "0..1" ItemPedido : "seleciona"
+Pedido "1..*" -- "1..*" ItemPedido : "Adiciona"
+Funcionario "0..*" -- "0..*" Pedido : "gerencia"
+Funcionario "1" -- "1" Entrega : "vai"
+@enduml

@@ -1,0 +1,44 @@
+@startuml diagram
+title Sistema de Delivery de Sushi
+
+actor Cliente
+actor Funcionario
+actor Entrega
+
+(Realizar login) as UC06
+(Acessar cardapio) as UC01
+(Selecionar produtos) as UC02
+(Adicionar carrinho) as UC09
+(Realizar pedido) as UC03
+(Revisar pedido) as UC05
+(Preparar pedido) as UC04
+(Entregar pedido) as UC08
+
+
+(Verificar senha) as REF01
+(Validar informacoes de cadastro) as REF02
+(Exibir confirmacao de login) as REF03
+(Exibir erro de login) as REF04
+(Confirmar pedido) as REF05
+(Cancelar pedido) as REF06
+(Editar carrinho) as REF07
+
+Cliente --> UC06
+UC06 --> REF01
+REF01 --> REF02
+REF02 -.-> REF03 : <<extend>>
+REF02 -.-> REF04 : <<extend>>
+UC03 -.-> REF05 : <<extend>>
+UC03 -.-> REF06 : <extend>>
+UC09 -.-> REF07 : <<extend>>
+
+Cliente --> UC01
+Cliente --> UC02
+Cliente --> UC09
+Cliente --> UC03
+
+Funcionario --> UC05
+Funcionario --> UC04
+Entrega --> UC08
+
+@enduml
