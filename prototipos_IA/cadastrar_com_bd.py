@@ -8,7 +8,7 @@ class Tela:
     def __init__(self, master):
         self.janela = master
         self.janela.geometry("500x300")
-        self.janela.title('Tela de Login com layout grid')
+        self.janela.title('Tela de Login')
 
         # Conexão com o banco de dados
         self.conectar_db()
