@@ -9,9 +9,7 @@ class Tela:
         self.janela.geometry("500x300")
         self.janela.title('Tela de Login')
 
-        # Conexão com o banco de dados
-        self.conectar_db()
-
+# aq é so a tela de logi mesmo
         self.lbl_usuario = ttk.Label(self.janela, text="Usuário (Email):")
         self.lbl_usuario.grid(column=0, row=0, sticky=W, padx=5, pady=5)
 
@@ -24,37 +22,36 @@ class Tela:
         self.ent_senha = ttk.Entry(self.janela, show="*")
         self.ent_senha.grid(column=1, row=1, sticky=E, padx=5, pady=5)
 
-        # Frame para botões
         self.frm_botoes = ttk.Frame(self.janela)
         self.frm_botoes.grid(column=1, row=2, columnspan=2, pady=5)
 
-        # Botão de Login
         self.btn_login = ttk.Button(self.frm_botoes, text="Entrar", bootstyle="primary", command=self.login)
         self.btn_login.pack(side=LEFT, padx=5)
 
-        # Botão de Cadastro
         self.btn_cadastrar = ttk.Button(self.frm_botoes, text="Cadastrar", bootstyle="success", command=self.cadastrar)
         self.btn_cadastrar.pack(side=LEFT)
 
         self.centraliza(self.janela)
+        self.conectar_db()
+
+
 
     def conectar_db(self):
-        """Conecta ao banco e cria tabela se não existir"""
         self.conn = sqlite3.connect("usuarios.db")
         self.cursor = self.conn.cursor()
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS usuarios (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome TEXT NOT NULL,
-                cpf TEXT NOT NULL UNIQUE,
-                email TEXT NOT NULL UNIQUE,
-                senha TEXT NOT NULL
-            )
-        """)
+        self.cursor.execute(
+            'CREATE TABLE IF NOT EXISTS usuarios' 
+            '('
+                'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+                'nome TEXT NOT NULL,'
+                'cpf TEXT NOT NULL UNIQUE,'
+                'email TEXT NOT NULL UNIQUE,'
+                'senha TEXT NOT NULL'
+            ')'
+        )
         self.conn.commit()
-
+#funcoes do limas
     def cadastrar(self):
-        """Abre janela para cadastro"""
         self.top_cadastrar = ttk.Toplevel(self.janela)
         self.top_cadastrar.grab_set()
         self.top_cadastrar.title("Cadastro de Usuário")
