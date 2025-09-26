@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
@@ -56,9 +55,9 @@ class Tela:
 
     def cadastrar(self):
         """Abre janela para cadastro"""
-        self.top_cadastrar = tk.Toplevel(self.janela)
-        self.top_cadastrar.title("Cadastro de Usuário")
+        self.top_cadastrar = ttk.Toplevel(self.janela)
         self.top_cadastrar.grab_set()
+        self.top_cadastrar.title("Cadastro de Usuário")
 
         ttk.Label(self.top_cadastrar, text='NOME:').grid(row=0, column=0, padx=5, pady=5, sticky=W)
         ttk.Label(self.top_cadastrar, text='CPF:').grid(row=1, column=0, padx=5, pady=5, sticky=W)
