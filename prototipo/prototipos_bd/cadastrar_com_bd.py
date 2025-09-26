@@ -39,6 +39,8 @@ class Tela:
     def conectar_db(self):
         self.conn = sqlite3.connect("usuarios.db")
         self.cursor = self.conn.cursor()
+
+
         self.cursor.execute(
             'CREATE TABLE IF NOT EXISTS usuarios' 
             '('
@@ -93,10 +95,8 @@ class Tela:
             messagebox.showwarning('Aviso', 'Todos os campos são obrigatórios.', parent=self.top_cadastrar)
         else:
             try:
-                self.cursor.execute(
-                    "INSERT INTO usuarios (nome, cpf, email, senha) VALUES (?, ?, ?, ?)",
-                    (nome, cpf, email, senha)
-                )
+                sql_novo_usuario = "INSERT INTO usuarios (nome, cpf, email, senha) VALUES (?, ?, ?, ?)"
+                self.cursor.execute(sql_novo_usuario,[nome, cpf, email, senha])
                 self.conn.commit()
                 messagebox.showinfo('Sucesso', f'Cadastro realizado com sucesso!\n\nNome: {nome}\nEmail: {email}')
                 self.top_cadastrar.destroy()
