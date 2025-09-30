@@ -3,13 +3,11 @@ from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sqlite3
-from tkinter.scrolledtext import ScrolledText
-
 from PIL import Image, ImageTk
-import os
 
 ADMIN_EMAIL = "admin@"
 ADMIN_SENHA = "admin123"
+
 class Tela:
     def __init__(self, master):
         self.janela = master
@@ -37,7 +35,8 @@ class Tela:
 
         self.btn_cadastrar = ttk.Button(self.frm_botoes, text="Cadastrar", bootstyle="success-outline", command=self.cadastrar)
         self.btn_cadastrar.pack(side=LEFT)
-
+        
+        self.janela.bind("<Return>", self.login)
         self.centraliza(self.janela)
 
     def conectar_db(self):
@@ -83,29 +82,24 @@ class Tela:
         self.top_cadastrar.title("Cadastro de Usuário")
         self.top_cadastrar.geometry("400x250")
 
-        self.lbl_nome = ttk.Label(self.top_cadastrar, text='NOME:')
-        self.lbl_nome.grid(row=0, column=0, padx=5, pady=5, sticky=W)
+        self.btn_nome = ttk.Label(self.top_cadastrar, text='NOME:')
+        self.btn_nome.grid(row=0, column=0, padx=5, pady=5, sticky=W)
         self.ent_nome = ttk.Entry(self.top_cadastrar, width=30)
         self.ent_nome.grid(row=0, column=1, padx=5, pady=5)
-
-        self.lbl_cpf = ttk.Label(self.top_cadastrar, text='CPF:')
-        self.lbl_cpf.grid(row=1, column=0, padx=5, pady=5, sticky=W)
+        self.lbl_cppf = ttk.Label(self.top_cadastrar, text='CPF:')
+        self.lbl_cppf.grid(row=1, column=0, padx=5, pady=5, sticky=W)
         self.ent_cpf = ttk.Entry(self.top_cadastrar, width=30)
         self.ent_cpf.grid(row=1, column=1, padx=5, pady=5)
-
-        
-        self.lbl_email = tk.Label(self.top_cadastrar, text='EMAIL:')
-        self.lbl_email.grid(row=2, column=0, padx=5, pady=5, sticky=W)
+        self.lbl_cadastrar = ttk.Label(self.top_cadastrar, text='EMAIL:')
+        self.lbl_cadastrar.grid(row=2, column=0, padx=5, pady=5, sticky=W)
         self.ent_email = ttk.Entry(self.top_cadastrar, width=30)
         self.ent_email.grid(row=2, column=1, padx=5, pady=5)
-
-        self.lbl_senha = ttk.Label(self.top_cadastrar, text='SENHA:')
-        self.lbl_senha.grid(row=3, column=0, padx=5, pady=5, sticky=W)
+        self.ent_senha = ttk.Label(self.top_cadastrar, text='SENHA:')
+        self.ent_senha.grid(row=3, column=0, padx=5, pady=5, sticky=W)
         self.ent_senha_cad = ttk.Entry(self.top_cadastrar, show="*", width=30)
         self.ent_senha_cad.grid(row=3, column=1, padx=5, pady=5)
-
-        self.btn_confirmar_cadastro = ttk.Button(self.top_cadastrar, text='Confirmar Cadastro', bootstyle="success", command=self.confirmar_cadastro)
-        self.btn_confirmar_cadastro.grid(row=4, column=0, columnspan=2, sticky='we', padx=5, pady=10)
+        self.btn_confirmar_cadastruaum = ttk.Button(self.top_cadastrar, text='Confirmar Cadastro', bootstyle="success", command=self.confirmar_cadastro)
+        self.btn_confirmar_cadastruaum.grid(row=4, column=0, columnspan=2, sticky='we', padx=5, pady=10)
         self.centraliza(self.top_cadastrar)
 
     def confirmar_cadastro(self):
@@ -151,7 +145,7 @@ class Tela:
         top_cardapio.destroy()
         self.janela.deiconify()
 
-    def login(self):
+    def login(self, master):
         email = self.ent_usuario.get()
         senha = self.ent_senha.get()
 
@@ -187,14 +181,10 @@ class TelaAdmin:
         self.janela.title("Área Administrativa - Usuários Cadastrados")
         self.janela.geometry("700x500")
         
-        ttk.Label(self.janela, text="Usuários Cadastrados", font=("Arial", 16, "bold")).pack(pady=10)
+        Usuários_Cadastrados = ttk.Label(self.janela, text="Usuários Cadastrados", font=("Arial", 16, "bold"))
+        Usuários_Cadastrados.pack(pady=10)
 
-        self.tree = ttk.Treeview(
-            self.janela, 
-            columns=('ID', 'Nome', 'CPF', 'Email'), 
-            show='headings',
-            bootstyle="primary"
-        )
+        self.tree = ttk.Treeview(self.janela, columns=('ID', 'Nome', 'CPF', 'Email'), show='headings', bootstyle="primary")
         self.tree.heading('ID', text='ID', anchor=W)
         self.tree.heading('Nome', text='Nome', anchor=W)
         self.tree.heading('CPF', text='CPF', anchor=W)
@@ -254,7 +244,6 @@ class TelaAdmin:
         y = altura_monitor // 2 - altura_janela // 2
         master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
 
-
 class TelaCardapio:
     def __init__(self, master, conn, cursor, usuario_nome, on_close_callback):
         self.janela = master
@@ -269,20 +258,27 @@ class TelaCardapio:
         
         frm_topo = ttk.Frame(self.janela)
         frm_topo.pack(fill=X, padx=10, pady=10)
-        ttk.Label(frm_topo, text="Nosso Cardápio", font=("Arial", 16, "bold")).pack(side=LEFT)
-        ttk.Button(frm_topo, text="Ver Carrinho", command=self.abrir_carrinho, bootstyle="info").pack(side=RIGHT)
-        ttk.Button(frm_topo, text="Logout", command=self.on_close_callback, bootstyle="danger-outline").pack(side=RIGHT, padx=5)
-
+        self.lbl_NossoCardapio = ttk.Label(frm_topo, text="Nosso Cardápio", font=("Arial", 16, "bold"))
+        self.lbl_NossoCardapio.pack(side=LEFT)
+        self.btn_ver_xibiu = ttk.Button(frm_topo, text="Ver Carrinho", command=self.abrir_carrinho, bootstyle="info")
+        self.btn_ver_xibiu.pack(side=RIGHT)
+        self.btn_logout = ttk.Button(frm_topo, text="Logout", command=self.on_close_callback, bootstyle="danger-outline")
+        self.btn_logout.pack(side=RIGHT, padx=5)
+        
         container = ttk.Frame(self.janela)
         container.pack(fill=BOTH, expand=True, padx=10, pady=10)
         canvas = tk.Canvas(container, highlightthickness=0)
         scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
         self.scrollable_frame = ttk.Frame(canvas)
         self.scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        
         canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
+
+        # Empacotando os widgets da rolagem
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+        # --- Fim da nova implementação ---
 
         self.janela.protocol("WM_DELETE_WINDOW", self.on_close_callback)
         self.carregar_produtos()
@@ -314,23 +310,25 @@ class TelaCardapio:
 
         frm_info = ttk.Frame(frm_produto)
         frm_info.pack(side=LEFT, fill=X, expand=True, padx=10)
-        ttk.Label(frm_info, text=desc, wraplength=400, justify=LEFT).pack(anchor=W)
-        ttk.Label(frm_info, text=f"R$ {preco:.2f}").pack(anchor=W, pady=5)
+        ttk.Label(frm_info, text=desc, wraplength=400, justify=LEFT, font=("Arial", 9)).pack(anchor=W)
+        ttk.Label(frm_info, text=f"R$ {preco:.2f}", font=("Arial", 12, "bold")).pack(anchor=W, pady=5)
         
         frm_controles = ttk.Frame(frm_produto)
         frm_controles.pack(side=RIGHT, padx=10)
         
-        btn_menos = ttk.Button(frm_controles, text="-", bootstyle="danger", command=lambda p=produto_id: self.remover_do_carrinho(p))
+        btn_menos = ttk.Button(frm_controles, text="-", bootstyle="danger")
         btn_menos.pack()
+        btn_menos.bind("<Button-1>", lambda event, p_id=produto_id: self.remover_do_carrinho(event, p_id))
         
-        btn_mais = ttk.Button(frm_controles, text="+", bootstyle="success", command=lambda p=produto_id: self.adicionar_ao_carrinho(p))
+        btn_mais = ttk.Button(frm_controles, text="+", bootstyle="success")
         btn_mais.pack(pady=5)
+        btn_mais.bind("<Button-1>", lambda event, p_id=produto_id: self.adicionar_ao_carrinho(event, p_id))
         
         if estoque <= 0:
             btn_mais.config(state=DISABLED)
-            ttk.Label(frm_info, text="ESGOTADO", bootstyle="danger").pack(anchor=W, pady=5)
+            ttk.Label(frm_info, text="ESGOTADO", bootstyle="danger", font=("Arial", 10, "bold")).pack(anchor=W, pady=5)
 
-    def adicionar_ao_carrinho(self, produto_id):
+    def adicionar_ao_carrinho(self, event, produto_id):
         self.cursor.execute("SELECT estoque FROM produtos WHERE id=?", (produto_id,))
         estoque_atual = self.cursor.fetchone()[0]
 
@@ -342,7 +340,7 @@ class TelaCardapio:
         else:
             messagebox.showwarning("Estoque", "Produto esgotado!")
 
-    def remover_do_carrinho(self, produto_id):
+    def remover_do_carrinho(self, event, produto_id):
         if produto_id in self.carrinho and self.carrinho[produto_id] > 0:
             self.cursor.execute("UPDATE produtos SET estoque = estoque + 1 WHERE id=?", (produto_id,))
             self.conn.commit()
@@ -355,7 +353,7 @@ class TelaCardapio:
 
     def abrir_carrinho(self):
         if not self.carrinho:
-            messagebox.showinfo("Carrinho Vazio", "Seu carrinho está vazio. Adicione produtos primeiro.")
+            messagebox.showinfo("Carrinho Vazio", "Seu carrinho está vazio.")
             return
         
         top_carrinho = ttk.Toplevel(self.janela)
@@ -369,11 +367,10 @@ class TelaCarrinho:
         self.cursor = cursor
         self.carrinho = carrinho_ref 
         self.refresh_cardapio = refresh_cardapio_callback
-        self.janela.geometry("700x550")
+        self.janela.geometry("550x450")
         self.janela.grab_set()
 
-        self.lbl_resumoP = ttk.Label(self.janela, text="Resumo do Pedido", font=("Arial", 16, "bold"))
-        self.lbl_resumoP.pack(pady=10)
+        ttk.Label(self.janela, text="Resumo do Pedido", font=("Arial", 16, "bold")).pack(pady=10)
 
         container = ttk.Frame(self.janela)
         container.pack(fill=BOTH, expand=True, padx=10, pady=10)
@@ -403,6 +400,7 @@ class TelaCarrinho:
         total_pedido = 0
         if not self.carrinho:
             ttk.Label(self.scrollable_frame, text="Carrinho Vazio").pack()
+            self.janela.after(100, self.janela.destroy)
         else:
             for produto_id, quantidade in self.carrinho.items():
                 self.cursor.execute("SELECT nome, preco FROM produtos WHERE id=?", (produto_id,))
@@ -423,15 +421,21 @@ class TelaCarrinho:
         frm_controles = ttk.Frame(frm_item)
         frm_controles.pack(side=RIGHT, padx=10)
 
-        btn_menos = ttk.Button(frm_controles, text="-", width=2, bootstyle="danger", command=lambda: self.diminuir_quantidade(produto_id))
+        btn_menos = ttk.Button(frm_controles, text="-", width=2, bootstyle="danger")
         btn_menos.pack(side=LEFT, padx=2)
-        ttk.Label(frm_controles, text=str(quantidade), width=3, anchor=CENTER).pack(side=LEFT)
-        btn_mais = ttk.Button(frm_controles, text="+", width=2, bootstyle="success", command=lambda: self.aumentar_quantidade(produto_id))
-        btn_mais.pack(side=LEFT, padx=2)
-        btn_remover = ttk.Button(frm_controles, text="🗑️", width=2, bootstyle="danger-outline", command=lambda: self.remover_totalmente(produto_id))
-        btn_remover.pack(side=LEFT, padx=(10,2))
+        btn_menos.bind("<Button-1>", lambda event, p_id=produto_id: self.diminuir_quantidade(event, p_id))
 
-    def aumentar_quantidade(self, produto_id):
+        ttk.Label(frm_controles, text=str(quantidade), width=3, anchor=CENTER).pack(side=LEFT)
+        
+        btn_mais = ttk.Button(frm_controles, text="+", width=2, bootstyle="success")
+        btn_mais.pack(side=LEFT, padx=2)
+        btn_mais.bind("<Button-1>", lambda event, p_id=produto_id: self.aumentar_quantidade(event, p_id))
+        
+        btn_remover = ttk.Button(frm_controles, text="🗑️", width=2, bootstyle="danger-outline")
+        btn_remover.pack(side=LEFT, padx=(10,2))
+        btn_remover.bind("<Button-1>", lambda event, p_id=produto_id: self.remover_totalmente(event, p_id))
+
+    def aumentar_quantidade(self, event, produto_id):
         self.cursor.execute("SELECT estoque FROM produtos WHERE id=?", (produto_id,))
         if self.cursor.fetchone()[0] > 0:
             self.cursor.execute("UPDATE produtos SET estoque = estoque - 1 WHERE id=?", (produto_id,))
@@ -442,7 +446,7 @@ class TelaCarrinho:
         else:
             messagebox.showwarning("Estoque", "Não há mais estoque para este produto.", parent=self.janela)
 
-    def diminuir_quantidade(self, produto_id):
+    def diminuir_quantidade(self, event, produto_id):
         self.cursor.execute("UPDATE produtos SET estoque = estoque + 1 WHERE id=?", (produto_id,))
         self.conn.commit()
         self.carrinho[produto_id] -= 1
@@ -450,17 +454,14 @@ class TelaCarrinho:
             del self.carrinho[produto_id]
         self.atualizar_visualizacao_carrinho()
         self.refresh_cardapio()
-        if not self.carrinho: 
-            self.janela.destroy()
 
-    def remover_totalmente(self, produto_id):
+    def remover_totalmente(self, event, produto_id):
         quantidade_a_devolver = self.carrinho[produto_id]
         self.cursor.execute("UPDATE produtos SET estoque = estoque + ? WHERE id=?", (quantidade_a_devolver, produto_id))
         self.conn.commit()
         del self.carrinho[produto_id]
         self.atualizar_visualizacao_carrinho()
         self.refresh_cardapio()
-        if not self.carrinho: self.janela.destroy()
 
     def finalizar_pedido(self):
         messagebox.showinfo("Pedido Finalizado", "Seu pedido foi realizado com sucesso!")
@@ -468,6 +469,8 @@ class TelaCarrinho:
         self.refresh_cardapio()
         self.janela.destroy()
 
-app = ttk.Window(themename='darkly')
-Tela(app)
-app.mainloop()
+if __name__ == "__main__":
+    app = ttk.Window(themename='darkly')
+    Tela(app)
+    app.mainloop()
+
