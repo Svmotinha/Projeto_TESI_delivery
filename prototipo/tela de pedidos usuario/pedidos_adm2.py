@@ -3,12 +3,11 @@ from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sqlite3
-from PIL import Image, ImageTk # Necessário: pip install Pillow
+from PIL import Image, ImageTk 
 import os
 import json
 from datetime import datetime
 
-# --- CREDENCIAIS DO ADMINISTRADOR ---
 ADMIN_EMAIL = "admin@"
 ADMIN_SENHA = "admin123"
 

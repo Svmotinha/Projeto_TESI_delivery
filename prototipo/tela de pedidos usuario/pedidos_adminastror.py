@@ -8,7 +8,6 @@ import os
 import json
 from datetime import datetime
 
-# --- CREDENCIAIS DO ADMINISTRADOR ---
 ADMIN_EMAIL = "admin@"
 ADMIN_SENHA = "admin123"
 
