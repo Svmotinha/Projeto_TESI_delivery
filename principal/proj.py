@@ -37,7 +37,7 @@ class Tela:
 
 
     def conectar_db(self):
-        self.conn = sqlite3.connect("usuarios.db")
+        self.conn = sqlite3.connect("Entregai.db")
         self.cursor = self.conn.cursor()
 
         # Garante que a tabela existe

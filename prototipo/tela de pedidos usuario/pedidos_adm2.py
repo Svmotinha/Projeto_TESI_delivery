@@ -1,12 +1,141 @@
+import tkinter as tk
 from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sqlite3
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk # Necessário: pip install Pillow
 import os
+import json
+from datetime import datetime
 
+# --- CREDENCIAIS DO ADMINISTRADOR ---
 ADMIN_EMAIL = "admin@"
 ADMIN_SENHA = "admin123"
+
+class TelaGerenciarUsuarios:
+    def __init__(self, master, conn, cursor, on_close_callback):
+        self.janela = master
+        self.conn = conn
+        self.cursor = cursor
+        self.on_close_callback = on_close_callback
+        self.janela.title("Gerenciamento de Usuários")
+        self.janela.geometry("700x500")
+        self.janela.protocol("WM_DELETE_WINDOW", self.on_close_callback)
+        self.janela.grab_set()
+        
+        self.lbl_tituloAdmin = ttk.Label(self.janela, text="Usuários Cadastrados", font=("Arial", 16, "bold"))
+        self.lbl_tituloAdmin.pack(pady=10)
+
+        self.tree = ttk.Treeview(
+            self.janela, 
+            columns=('ID', 'Nome', 'CPF', 'Email'), 
+            show='headings',
+            bootstyle="primary"
+        )
+        self.tree.heading('ID', text='ID', anchor=W)
+        self.tree.heading('Nome', text='Nome', anchor=W)
+        self.tree.heading('CPF', text='CPF', anchor=W)
+        self.tree.heading('Email', text='Email', anchor=W)
+        
+        self.tree.column('ID', width=30, anchor=CENTER)
+        self.tree.column('Nome', width=150, anchor=W)
+        self.tree.column('CPF', width=100, anchor=W)
+        self.tree.column('Email', width=200, anchor=W)
+        
+        self.tree.pack(fill='both', expand=True, padx=10, pady=10)
+
+        self.frm_botoes_admin = ttk.Frame(self.janela)
+        self.frm_botoes_admin.pack(pady=10)
+
+        self.btn_excluir = ttk.Button(self.frm_botoes_admin, text="Excluir Selecionado", bootstyle="danger", command=self.excluir_usuario)
+        self.btn_excluir.pack(side=LEFT, padx=5)
+
+        self.carregar_usuarios()
+        self.centraliza(self.janela)
+
+    def excluir_usuario(self):
+        item_selecionado = self.tree.selection()
+        
+        if len(item_selecionado) > 0:
+            usuario_id = self.tree.item(item_selecionado, 'values')[0]
+            confirmacao = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir o usuário selecionado?", parent=self.janela)
+            
+            if confirmacao:
+                if usuario_id == '1': 
+                    messagebox.showerror("Erro", "Não é possível excluir o administrador principal.", parent=self.janela)
+                    return
+                self.cursor.execute("DELETE FROM usuarios WHERE id=?", (usuario_id,))
+                self.conn.commit()
+                self.tree.delete(item_selecionado)
+                messagebox.showinfo("Sucesso", "Usuário excluído com sucesso.", parent=self.janela)
+        else:
+            messagebox.showwarning('Aviso', 'Por favor, selecione um usuário para excluir.', parent=self.janela)
+
+    def carregar_usuarios(self):
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+            
+        try:
+            self.cursor.execute("SELECT id, nome, cpf, email FROM usuarios")
+            usuarios = self.cursor.fetchall()
+            
+            for i in usuarios:
+                self.tree.insert('', END, values=i)
+        except Exception as erro:
+            messagebox.showerror("Erro no Banco de Dados", f"Não foi possível carregar os usuários: {erro}", parent=self.janela)
+
+    def centraliza(self, master):
+        largura_monitor = master.winfo_screenwidth()
+        altura_monitor = master.winfo_screenheight()
+        master.update_idletasks()
+        largura_janela = master.winfo_width()
+        altura_janela = master.winfo_height()
+        x = largura_monitor // 2 - largura_janela // 2
+        y = altura_monitor // 2 - altura_janela // 2
+        master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
+
+class TelaAdmin:
+    def __init__(self, master, conn, cursor, on_close_callback):
+        self.janela = master
+        self.conn = conn
+        self.cursor = cursor
+        self.on_close_callback = on_close_callback
+        self.janela.title("Painel do Administrador")
+        self.janela.geometry("400x200")
+        self.janela.protocol("WM_DELETE_WINDOW", self.on_close_callback)
+
+        self.lbl_titulo = ttk.Label(self.janela, text="Painel Administrativo", font=("Arial", 16, "bold"))
+        self.lbl_titulo.pack(pady=20)
+        
+        self.frm_botoes = ttk.Frame(self.janela)
+        self.frm_botoes.pack(pady=10)
+
+        self.btn_gerenciarUsuarios = ttk.Button(self.frm_botoes, text="Gerenciar Usuários", command=self.abrir_gerenciamento_usuarios, bootstyle="primary")
+        self.btn_gerenciarUsuarios.pack(pady=5, padx=10, fill=X)
+        
+        self.btn_gerenciarPedidos = ttk.Button(self.frm_botoes, text="Gerenciar Pedidos", command=self.abrir_gerenciamento_pedidos, bootstyle="info")
+        self.btn_gerenciarPedidos.pack(pady=5, padx=10, fill=X)
+
+        self.centraliza(self.janela)
+    
+    def abrir_gerenciamento_usuarios(self):
+        top_usuarios = ttk.Toplevel(self.janela)
+        TelaGerenciarUsuarios(top_usuarios, self.conn, self.cursor, top_usuarios.destroy)
+
+    def abrir_gerenciamento_pedidos(self):
+        top_pedidos = ttk.Toplevel(self.janela)
+        TelaPedidosAdmin(top_pedidos, self.conn, self.cursor)
+
+    def centraliza(self, master):
+        largura_monitor = master.winfo_screenwidth()
+        altura_monitor = master.winfo_screenheight()
+        master.update_idletasks()
+        largura_janela = master.winfo_width()
+        altura_janela = master.winfo_height()
+        x = largura_monitor // 2 - largura_janela // 2
+        y = altura_monitor // 2 - altura_janela // 2
+        master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
+
 class Tela:
     def __init__(self, master):
         self.janela = master
@@ -16,11 +145,13 @@ class Tela:
 
         self.lbl_usuario = ttk.Label(self.janela, text="Email:")
         self.lbl_usuario.grid(column=0, row=0, sticky=W, padx=10, pady=10)
+
         self.ent_usuario = ttk.Entry(self.janela, width=30)
         self.ent_usuario.grid(column=1, row=0, sticky=E, padx=10, pady=10)
 
         self.lbl_senha = ttk.Label(self.janela, text="Senha:")
         self.lbl_senha.grid(column=0, row=1, sticky=W, padx=10, pady=10)
+
         self.ent_senha = ttk.Entry(self.janela, show="*", width=30)
         self.ent_senha.grid(column=1, row=1, sticky=E, padx=10, pady=10)
 
@@ -56,28 +187,34 @@ class Tela:
             'estoque INTEGER NOT NULL,'
             'caminho_imagem TEXT)'
         )
+        self.cursor.execute(
+            'CREATE TABLE IF NOT EXISTS pedidos ('
+            'id INTEGER PRIMARY KEY AUTOINCREMENT,'
+            'usuario_id INTEGER NOT NULL,'
+            'produtos TEXT NOT NULL,'
+            'total REAL NOT NULL,'
+            'data_pedido TEXT NOT NULL,'
+            'status TEXT NOT NULL,'
+            'FOREIGN KEY (usuario_id) REFERENCES usuarios(id))'
+        )
         self.conn.commit()
         self.popular_produtos_se_vazio()
 
     def popular_produtos_se_vazio(self):
         self.cursor.execute("SELECT COUNT(*) FROM produtos")
         if self.cursor.fetchone()[0] == 0:
+            if not os.path.exists('imagens'):
+                os.makedirs('imagens')
+            
             produtos_iniciais = [
-                ('Combo Hot Philadelphia', '10 Hot Rolls Philadelphia + 1 Refri Lata', 
-                 45.90, 20, 'imagens/combo_hot.png'),
-                ('Combo Super Temaki', '2 Temakis Salmão completo + 1 porção de sunomono', 
-                 55.00, 15, 'imagens/combo_temaki.png'),
-                ('Combo Yakisoba Casal', '2 Yakisobas (Frango ou Carne) + 2 Rolinhos Primavera', 
-                 65.50, 10, 'imagens/combo_yakisoba.png'),
-                ('Combo Sashimi Mix', '15 fatias de sashimi (Salmão, Atum, Peixe Branco)', 
-                 75.00, 18, 'imagens/combo_sashimi.png'),
-                ('Combo Uramaki Especial', '10 Uramakis Califórnia + 10 Uramakis Skin', 
-                 49.90, 25, 'imagens/combo_uramakis.png'),
-                ('Combo Poke Fit', '1 Poke de Salmão com base de arroz + 1 Suco Natural', 
-                 42.00, 12, 'imagens/combo_pokes.png')
+                ('Combo Hot Philadelphia', '10 Hot Rolls Philadelphia + 1 Refri Lata', 45.90, 20, 'imagens/combo_hot.png'),
+                ('Combo Super Temaki', '2 Temakis Salmão completo + 1 porção de sunomono', 55.00, 15, 'imagens/combo_temaki.png'),
+                ('Combo Yakisoba Casal', '2 Yakisobas (Frango ou Carne) + 2 Rolinhos Primavera', 65.50, 10, 'imagens/combo_yakisoba.png'),
+                ('Combo Sashimi Mix', '15 fatias de sashimi (Salmão, Atum, Peixe Branco)', 75.00, 18, 'imagens/combo_sashimi.png'),
+                ('Combo Uramaki Especial', '10 Uramakis Califórnia + 10 Uramakis Skin', 49.90, 25, 'imagens/combo_uramakis.png'),
+                ('Combo Poke Fit', '1 Poke de Salmão com base de arroz + 1 Suco Natural', 42.00, 12, 'imagens/combo_pokes.png')
             ]
-            self.cursor.executemany("INSERT INTO produtos (nome, descricao, preco, estoque, caminho_imagem)" 
-                                    "VALUES (?, ?, ?, ?, ?)", produtos_iniciais)
+            self.cursor.executemany("INSERT INTO produtos (nome, descricao, preco, estoque, caminho_imagem) VALUES (?, ?, ?, ?, ?)", produtos_iniciais)
             self.conn.commit()
 
     def cadastrar(self):
@@ -88,18 +225,18 @@ class Tela:
 
         self.lbl_nome_cad = ttk.Label(self.top_cadastrar, text='NOME:')
         self.lbl_nome_cad.grid(row=0, column=0, padx=5, pady=5, sticky=W)
-        self.ent_nome = ttk.Entry(self.top_cadastrar, width=30)
-        self.ent_nome.grid(row=0, column=1, padx=5, pady=5)
+        self.ent_nome_cad = ttk.Entry(self.top_cadastrar, width=30)
+        self.ent_nome_cad.grid(row=0, column=1, padx=5, pady=5)
 
         self.lbl_cpf_cad = ttk.Label(self.top_cadastrar, text='CPF:')
         self.lbl_cpf_cad.grid(row=1, column=0, padx=5, pady=5, sticky=W)
-        self.ent_cpf = ttk.Entry(self.top_cadastrar, width=30)
-        self.ent_cpf.grid(row=1, column=1, padx=5, pady=5)
+        self.ent_cpf_cad = ttk.Entry(self.top_cadastrar, width=30)
+        self.ent_cpf_cad.grid(row=1, column=1, padx=5, pady=5)
 
         self.lbl_email_cad = ttk.Label(self.top_cadastrar, text='EMAIL:')
         self.lbl_email_cad.grid(row=2, column=0, padx=5, pady=5, sticky=W)
-        self.ent_email = ttk.Entry(self.top_cadastrar, width=30)
-        self.ent_email.grid(row=2, column=1, padx=5, pady=5)
+        self.ent_email_cad = ttk.Entry(self.top_cadastrar, width=30)
+        self.ent_email_cad.grid(row=2, column=1, padx=5, pady=5)
 
         self.lbl_senha_cad = ttk.Label(self.top_cadastrar, text='SENHA:')
         self.lbl_senha_cad.grid(row=3, column=0, padx=5, pady=5, sticky=W)
@@ -112,9 +249,9 @@ class Tela:
         self.centraliza(self.top_cadastrar)
 
     def confirmar_cadastro(self):
-        nome = self.ent_nome.get()
-        cpf = self.ent_cpf.get()
-        email = self.ent_email.get()
+        nome = self.ent_nome_cad.get()
+        cpf = self.ent_cpf_cad.get()
+        email = self.ent_email_cad.get()
         senha = self.ent_senha_cad.get()
 
         if nome == '' or cpf == '' or email == '' or senha == '':
@@ -128,17 +265,16 @@ class Tela:
                 self.top_cadastrar.destroy()
             except sqlite3.IntegrityError:
                 messagebox.showerror("Erro", "CPF ou Email já cadastrados!", parent=self.top_cadastrar)
-
+    
     def abrir_tela_admin(self):
         self.janela.withdraw()
         top_admin = ttk.Toplevel(self.janela)
-        TelaAdmin(top_admin, self.conn, self.cursor)
-        top_admin.protocol("WM_DELETE_WINDOW", lambda: self.fechar_admin(top_admin))
-    
-    def abrir_tela_cardapio(self, usuario_nome):
+        TelaAdmin(top_admin, self.conn, self.cursor, lambda: self.fechar_admin(top_admin))
+
+    def abrir_tela_cardapio(self, usuario_id, usuario_nome):
         self.janela.withdraw()
         top_cardapio = ttk.Toplevel(self.janela)
-        self.tela_cardapio_inst = TelaCardapio(top_cardapio, self.conn, self.cursor, usuario_nome, lambda: self.fechar_tela_cliente(top_cardapio))
+        self.tela_cardapio_inst = TelaCardapio(top_cardapio, self.conn, self.cursor, usuario_id, usuario_nome, lambda: self.fechar_tela_cliente(top_cardapio))
         
     def fechar_admin(self, top_admin):
         top_admin.destroy()
@@ -170,8 +306,10 @@ class Tela:
         usuario = self.cursor.fetchone()
 
         if usuario:
-            messagebox.showinfo("Login", f"Bem-vindo, {usuario[1]}!")
-            self.abrir_tela_cardapio(usuario[1]) 
+            usuario_id = usuario[0]
+            usuario_nome = usuario[1]
+            messagebox.showinfo("Login", f"Bem-vindo, {usuario_nome}!")
+            self.abrir_tela_cardapio(usuario_id, usuario_nome) 
         else:
             messagebox.showerror("Erro", "Usuário ou senha inválidos.")
             
@@ -185,83 +323,12 @@ class Tela:
         y = altura_monitor // 2 - altura_janela // 2
         master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
 
-class TelaAdmin:
-    def __init__(self, master, conn, cursor):
-        self.janela = master
-        self.conn = conn
-        self.cursor = cursor
-        self.janela.title("Área Administrativa - Usuários Cadastrados")
-        self.janela.geometry("700x500")
-        
-        self.lbl_tituloAdmin = ttk.Label(self.janela, text="Usuários Cadastrados", font=("Arial", 16, "bold"))
-        self.lbl_tituloAdmin.pack(pady=10)
-
-        self.tree = ttk.Treeview(self.janela, columns=('ID', 'Nome', 'CPF', 'Email'), show='headings',bootstyle="primary")
-        self.tree.heading('ID', text='ID', anchor=W)
-        self.tree.heading('Nome', text='Nome', anchor=W)
-        self.tree.heading('CPF', text='CPF', anchor=W)
-        self.tree.heading('Email', text='Email', anchor=W)
-        
-        self.tree.column('ID', width=30, anchor=CENTER)
-        self.tree.column('Nome', width=150, anchor=W)
-        self.tree.column('CPF', width=100, anchor=W)
-        self.tree.column('Email', width=200, anchor=W)
-        
-        self.tree.pack(fill='both', expand=True, padx=10, pady=10)
-
-        self.frm_botoes_admin = ttk.Frame(self.janela)
-        self.frm_botoes_admin.pack(pady=10)
-
-        self.btn_excluir = ttk.Button(self.frm_botoes_admin, text="Excluir Selecionado", bootstyle="danger", command=self.excluir_usuario)
-        self.btn_excluir.pack(side=LEFT, padx=5)
-
-        self.carregar_usuarios()
-        self.centraliza(self.janela)
-
-    def excluir_usuario(self):
-        item_selecionado = self.tree.selection()
-        
-        if len(item_selecionado) > 0:
-            usuario_id = self.tree.item(item_selecionado, 'values')[0]
-            confirmacao = messagebox.askyesno("Confirmação", "Tem certeza que deseja excluir o usuário selecionado?")
-            
-            if confirmacao:
-                self.cursor.execute("DELETE FROM usuarios WHERE id=?", (usuario_id,))
-                self.conn.commit()
-                self.tree.delete(item_selecionado)
-                messagebox.showinfo("Sucesso", "Usuário excluído com sucesso.")
-        else:
-            messagebox.showwarning('Aviso', 'Por favor, selecione um usuário para excluir.')
-
-    def carregar_usuarios(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-            
-        try:
-            self.cursor.execute("SELECT id, nome, cpf, email FROM usuarios")
-            usuarios = self.cursor.fetchall()
-            
-            for i in usuarios:
-                self.tree.insert('', END, values=i)
-        except Exception as erro:
-            messagebox.showerror("Erro no Banco de Dados", f"Não foi possível carregar os usuários: {erro}")
-
-    def centraliza(self, master):
-        largura_monitor = master.winfo_screenwidth()
-        altura_monitor = master.winfo_screenheight()
-        master.update_idletasks()
-        largura_janela = master.winfo_width()
-        altura_janela = master.winfo_height()
-        x = largura_monitor // 2 - largura_janela // 2
-        y = altura_monitor // 2 - altura_janela // 2
-        master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
-
-
 class TelaCardapio:
-    def __init__(self, master, conn, cursor, usuario_nome, on_close_callback):
+    def __init__(self, master, conn, cursor, usuario_id, usuario_nome, on_close_callback):
         self.janela = master
         self.conn = conn
         self.cursor = cursor
+        self.usuario_id = usuario_id 
         self.on_close_callback = on_close_callback
         self.janela.title(f"Cardápio - Bem-vindo, {usuario_nome}!")
         self.janela.geometry("800x600")
@@ -275,6 +342,10 @@ class TelaCardapio:
         self.lbl_tituloCardapio.pack(side=LEFT)
         self.btn_verCarrinho = ttk.Button(self.frm_topo, text="Ver Carrinho", command=self.abrir_carrinho, bootstyle="info")
         self.btn_verCarrinho.pack(side=RIGHT)
+        
+        self.btn_historico = ttk.Button(self.frm_topo, text="Histórico de Pedidos", command=self.abrir_historico, bootstyle="primary-outline")
+        self.btn_historico.pack(side=RIGHT, padx=5)
+
         self.btn_logout = ttk.Button(self.frm_topo, text="Logout", command=self.on_close_callback, bootstyle="danger-outline")
         self.btn_logout.pack(side=RIGHT, padx=5)
         
@@ -291,6 +362,7 @@ class TelaCardapio:
 
         self.janela.protocol("WM_DELETE_WINDOW", self.on_close_callback)
         self.carregar_produtos()
+        self.atualizar_contador_carrinho()
 
     def carregar_produtos(self):
         for widget in self.scrollable_frame.winfo_children():
@@ -351,6 +423,7 @@ class TelaCardapio:
             self.conn.commit()
             self.carrinho[produto_id] = self.carrinho.get(produto_id, 0) + 1
             self.carregar_produtos() 
+            self.atualizar_contador_carrinho()
         else:
             messagebox.showwarning("Estoque", "Produto esgotado!")
 
@@ -362,8 +435,16 @@ class TelaCardapio:
             if self.carrinho[produto_id] == 0:
                 del self.carrinho[produto_id]
             self.carregar_produtos()
+            self.atualizar_contador_carrinho()
         else:
             messagebox.showwarning("Carrinho", "Este produto não está no seu carrinho.")
+
+    def atualizar_contador_carrinho(self):
+        total_itens = sum(self.carrinho.values())
+        if total_itens > 0:
+            self.btn_verCarrinho.config(text=f"Ver Carrinho ({total_itens})")
+        else:
+            self.btn_verCarrinho.config(text="Ver Carrinho")
 
     def abrir_carrinho(self):
         if not self.carrinho:
@@ -371,16 +452,22 @@ class TelaCardapio:
             return
         
         top_carrinho = ttk.Toplevel(self.janela)
-        top_carrinho.title("Seu Carrinho")
-        TelaCarrinho(top_carrinho, self.conn, self.cursor, self.carrinho, self.carregar_produtos)
+        top_carrinho.title("Meu Carrinho")
+        TelaCarrinho(top_carrinho, self.conn, self.cursor, self.carrinho, self.usuario_id, self.carregar_produtos, self.atualizar_contador_carrinho)
+    
+    def abrir_historico(self):
+        top_historico = ttk.Toplevel(self.janela)
+        TelaHistorico(top_historico, self.conn, self.cursor, self.usuario_id)
 
 class TelaCarrinho:
-    def __init__(self, master, conn, cursor, carrinho_ref, refresh_cardapio_callback):
+    def __init__(self, master, conn, cursor, carrinho_ref, usuario_id, refresh_cardapio_callback, refresh_counter_callback):
         self.janela = master
         self.conn = conn
         self.cursor = cursor
         self.carrinho = carrinho_ref 
+        self.usuario_id = usuario_id
         self.refresh_cardapio = refresh_cardapio_callback
+        self.refresh_counter = refresh_counter_callback
         self.janela.geometry("550x600")
         self.janela.grab_set()
 
@@ -420,14 +507,19 @@ class TelaCarrinho:
             lbl_carrinhoVazio.pack()
             self.janela.after(100, self.janela.destroy)
         else:
-            for produto_id, quantidade in self.carrinho.items():
+            detalhes_produtos = {}
+            for produto_id in self.carrinho.keys():
                 self.cursor.execute("SELECT nome, preco FROM produtos WHERE id=?", (produto_id,))
-                nome, preco = self.cursor.fetchone()
+                detalhes_produtos[produto_id] = self.cursor.fetchone()
+
+            for produto_id, quantidade in self.carrinho.items():
+                nome, preco = detalhes_produtos[produto_id]
                 subtotal = preco * quantidade
                 total_pedido += subtotal
                 self.criar_bloco_item_carrinho(produto_id, nome, quantidade, subtotal)
         
         self.lbl_total.config(text=f"Total: R$ {total_pedido:.2f}")
+        self.refresh_counter()
 
     def criar_bloco_item_carrinho(self, produto_id, nome, quantidade, subtotal):
         frm_item = ttk.Frame(self.scrollable_frame, relief=SOLID, borderwidth=1)
@@ -484,11 +576,123 @@ class TelaCarrinho:
         self.refresh_cardapio()
 
     def finalizar_pedido(self):
-        messagebox.showinfo("Pedido Finalizado", "Seu pedido foi realizado com sucesso!")
-        self.carrinho.clear()
-        self.refresh_cardapio()
-        self.janela.destroy()
+        total_final = 0
+        produtos_detalhados = {}
+        for prod_id, qtd in self.carrinho.items():
+            self.cursor.execute("SELECT nome, preco FROM produtos WHERE id=?", (prod_id,))
+            nome, preco = self.cursor.fetchone()
+            total_final += preco * qtd
+            produtos_detalhados[prod_id] = {'nome': nome, 'qtd': qtd}
 
-app = ttk.Window(themename='darkly')
-Tela(app)
-app.mainloop()
+        produtos_json = json.dumps(produtos_detalhados)
+        data_atual = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+
+        try:
+            self.cursor.execute(
+                "INSERT INTO pedidos (usuario_id, produtos, total, data_pedido, status) VALUES (?, ?, ?, ?, ?)",
+                (self.usuario_id, produtos_json, total_final, data_atual, 'Em preparo')
+            )
+            self.conn.commit()
+            messagebox.showinfo("Pedido Finalizado", "Seu pedido foi realizado com sucesso!", parent=self.janela)
+            self.carrinho.clear()
+            self.refresh_cardapio()
+            self.refresh_counter()
+            self.janela.destroy()
+        except Exception as e:
+            messagebox.showerror("Erro ao Salvar Pedido", f"Ocorreu um erro: {e}", parent=self.janela)
+
+class TelaHistorico:
+    def __init__(self, master, conn, cursor, usuario_id):
+        self.janela = master
+        self.conn = conn
+        self.cursor = cursor
+        self.usuario_id = usuario_id
+        self.janela.title("Meus Pedidos")
+        self.janela.geometry("700x500")
+        self.janela.grab_set()
+
+        self.main_frame = ttk.Frame(self.janela)
+        self.main_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
+        self.frm_lista = ttk.Labelframe(self.main_frame, text="Pedidos Realizados")
+        self.frm_lista.pack(side=LEFT, fill=BOTH, expand=True, padx=(0, 5))
+
+        self.frm_detalhes = ttk.Labelframe(self.main_frame, text="Detalhes do Pedido")
+        self.frm_detalhes.pack(side=RIGHT, fill=BOTH, expand=True, padx=(5, 0))
+        
+        self.tree = ttk.Treeview(self.frm_lista, columns=('ID', 'Data', 'Total'), show='headings', bootstyle="primary")
+        self.tree.heading('ID', text='Pedido ID')
+        self.tree.heading('Data', text='Data')
+        self.tree.heading('Total', text='Total (R$)')
+
+        self.tree.column('ID', width=80, anchor=CENTER)
+        self.tree.column('Data', width=150)
+        self.tree.column('Total', width=100, anchor=E)
+        
+        self.tree.pack(fill=BOTH, expand=True)
+        self.tree.bind('<<TreeviewSelect>>', self.mostrar_detalhes)
+
+        self.carregar_pedidos()
+
+    def carregar_pedidos(self):
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+        try:
+            self.cursor.execute("SELECT id, data_pedido, total FROM pedidos WHERE usuario_id=? ORDER BY id DESC", (self.usuario_id,))
+            pedidos = self.cursor.fetchall()
+            for p in pedidos:
+                self.tree.insert('', END, values=(p[0], p[1], f"{p[2]:.2f}"))
+        except Exception as e:
+            messagebox.showerror("Erro", f"Não foi possível carregar o histórico: {e}", parent=self.janela)
+    
+    def mostrar_detalhes(self, event):
+        for widget in self.frm_detalhes.winfo_children():
+            widget.destroy()
+
+        item_selecionado = self.tree.selection()
+        if not item_selecionado:
+            return
+
+        pedido_id = self.tree.item(item_selecionado, 'values')[0]
+        
+        try:
+            self.cursor.execute("SELECT produtos FROM pedidos WHERE id=?", (pedido_id,))
+            produtos_json = self.cursor.fetchone()[0]
+            produtos_dict = json.loads(produtos_json)
+
+            if not produtos_dict:
+                lbl_semItens = ttk.Label(self.frm_detalhes, text="Não há itens neste pedido.")
+                lbl_semItens.pack(padx=10, pady=10)
+                return
+
+            frm_cabecalho = ttk.Frame(self.frm_detalhes)
+            frm_cabecalho.pack(fill=X, padx=10, pady=(5,0))
+            lbl_prodCabecalho = ttk.Label(frm_cabecalho, text="Produto", font=('bold'))
+            lbl_prodCabecalho.pack(side=LEFT)
+            lbl_qtdCabecalho = ttk.Label(frm_cabecalho, text="Qtd", font=('bold'))
+            lbl_qtdCabecalho.pack(side=RIGHT)
+            
+            sep_cabecalho = ttk.Separator(self.frm_detalhes, orient=HORIZONTAL)
+            sep_cabecalho.pack(fill=X, padx=10, pady=5)
+
+            for prod_id, qtd in produtos_dict.items():
+                self.cursor.execute("SELECT nome FROM produtos WHERE id=?", (prod_id,))
+                resultado = self.cursor.fetchone()
+                nome_produto = resultado[0] if resultado else "Produto Removido"
+                
+                frm_item = ttk.Frame(self.frm_detalhes)
+                frm_item.pack(fill=X, padx=10, pady=2)
+                lbl_nomeProduto = ttk.Label(frm_item, text=nome_produto)
+                lbl_nomeProduto.pack(side=LEFT)
+                lbl_qtdProduto = ttk.Label(frm_item, text=str(qtd))
+                lbl_qtdProduto.pack(side=RIGHT)
+
+        except Exception as e:
+            lbl_erroDetalhes = ttk.Label(self.frm_detalhes, text=f"Erro ao carregar detalhes:\n{e}")
+            lbl_erroDetalhes.pack(padx=10, pady=10)
+
+
+if __name__ == "__main__":
+    app = ttk.Window(themename='darkly')
+    Tela(app)
+    app.mainloop()

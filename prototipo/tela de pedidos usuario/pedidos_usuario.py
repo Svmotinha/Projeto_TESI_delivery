@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
@@ -129,7 +128,7 @@ class Tela:
         self.centraliza(self.janela)
 
     def conectar_db(self):
-        self.conn = sqlite3.connect("usuarios.db")
+        self.conn = sqlite3.connect("Entregai.db")
         self.cursor = self.conn.cursor()
         self.cursor.execute(
             'CREATE TABLE IF NOT EXISTS usuarios ('
@@ -313,20 +312,17 @@ class TelaCardapio:
             "Arial", 16, "bold")).pack(side=LEFT)
         
         # --- BOTÃO DO CARRINHO COM CONTADOR ---
-        self.btn_ver_carrinho = ttk.Button(frm_topo, text="Ver Carrinho",
-                           command=self.abrir_carrinho, bootstyle="info")
+        self.btn_ver_carrinho = ttk.Button(frm_topo, text="Ver Carrinho",command=self.abrir_carrinho, bootstyle="info")
         self.btn_ver_carrinho.pack(side=RIGHT, padx=5)
 
         # --- BOTÃO HISTÓRICO DE PEDIDOS ---
-        ttk.Button(frm_topo, text="Histórico de Pedidos", command=self.abrir_historico,
-                   bootstyle="primary-outline").pack(side=RIGHT, padx=5)
+        ttk.Button(frm_topo, text="Histórico de Pedidos", command=self.abrir_historico, bootstyle="primary-outline").pack(side=RIGHT, padx=5)
 
-        ttk.Button(frm_topo, text="Logout", command=self.on_close_callback,
-                   bootstyle="danger-outline").pack(side=RIGHT, padx=5)
+        ttk.Button(frm_topo, text="Logout", command=self.on_close_callback, bootstyle="danger-outline").pack(side=RIGHT, padx=5)
 
         container = ttk.Frame(self.janela)
         container.pack(fill=BOTH, expand=True, padx=10, pady=10)
-        canvas = tk.Canvas(container, highlightthickness=0)
+        canvas = ttk.Canvas(container, highlightthickness=0)
         scrollbar = ttk.Scrollbar(
             container, orient="vertical", command=canvas.yview)
         self.scrollable_frame = ttk.Frame(canvas)
@@ -699,7 +695,6 @@ class TelaHistorico:
             ttk.Label(self.frm_detalhes, text=f"Erro ao carregar detalhes:\n{e}").pack(padx=10, pady=10)
 
 
-if __name__ == "__main__":
-    app = ttk.Window(themename='darkly')
-    Tela(app)
-    app.mainloop()
+app = ttk.Window(themename='darkly')
+Tela(app)
+app.mainloop()

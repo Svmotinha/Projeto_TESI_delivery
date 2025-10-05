@@ -1,4 +1,3 @@
-import tkinter as tk
 from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
@@ -9,88 +8,6 @@ import os
 # --- CREDENCIAIS DO ADMINISTRADOR ---
 ADMIN_EMAIL = "admin@"
 ADMIN_SENHA = "admin123"
-
-
-class TelaAdmin:
-    # (O código da TelaAdmin permanece o mesmo da versão anterior, sem alterações)
-    def __init__(self, master, conn, cursor):
-        self.janela = master
-        self.conn = conn
-        self.cursor = cursor
-        self.janela.title("Área Administrativa - Usuários Cadastrados")
-        self.janela.geometry("700x500")
-
-        ttk.Label(self.janela, text="Usuários Cadastrados").pack(pady=10)
-
-        self.tree = ttk.Treeview(
-            self.janela,
-            columns=('ID', 'Nome', 'CPF', 'Email'),
-            show='headings',
-            bootstyle="primary"
-        )
-        self.tree.heading('ID', text='ID', anchor=W)
-        self.tree.heading('Nome', text='Nome', anchor=W)
-        self.tree.heading('CPF', text='CPF', anchor=W)
-        self.tree.heading('Email', text='Email', anchor=W)
-
-        self.tree.column('ID', width=30, anchor=CENTER)
-        self.tree.column('Nome', width=150, anchor=W)
-        self.tree.column('CPF', width=100, anchor=W)
-        self.tree.column('Email', width=200, anchor=W)
-
-        self.tree.pack(fill='both', expand=True, padx=10, pady=10)
-
-        frm_botoes_admin = ttk.Frame(self.janela)
-        frm_botoes_admin.pack(pady=10)
-
-        btn_excluir = ttk.Button(frm_botoes_admin, text="Excluir Selecionado",
-                                 bootstyle="danger", command=self.excluir_usuario)
-        btn_excluir.pack(side=LEFT, padx=5)
-
-        self.carregar_usuarios()
-        self.centraliza(self.janela)
-
-    def excluir_usuario(self):
-        item_selecionado = self.tree.selection()
-
-        if len(item_selecionado) > 0:
-            usuario_id = self.tree.item(item_selecionado, 'values')[0]
-            confirmacao = messagebox.askyesno(
-                "Confirmação", "Tem certeza que deseja excluir o usuário selecionado?")
-
-            if confirmacao:
-                self.cursor.execute(
-                    "DELETE FROM usuarios WHERE id=?", (usuario_id,))
-                self.conn.commit()
-                self.tree.delete(item_selecionado)
-                messagebox.showinfo("Sucesso", "Usuário excluído com sucesso.")
-        else:
-            messagebox.showwarning(
-                'Aviso', 'Por favor, selecione um usuário para excluir.')
-
-    def carregar_usuarios(self):
-        for i in self.tree.get_children():
-            self.tree.delete(i)
-
-        try:
-            self.cursor.execute("SELECT id, nome, cpf, email FROM usuarios")
-            usuarios = self.cursor.fetchall()
-
-            for i in usuarios:
-                self.tree.insert('', END, values=i)
-        except Exception as erro:
-            messagebox.showerror("Erro no Banco de Dados",
-                                 f"Não foi possível carregar os usuários: {erro}")
-
-    def centraliza(self, master):
-        largura_monitor = master.winfo_screenwidth()
-        altura_monitor = master.winfo_screenheight()
-        master.update_idletasks()
-        largura_janela = master.winfo_width()
-        altura_janela = master.winfo_height()
-        x = largura_monitor // 2 - largura_janela // 2
-        y = altura_monitor // 2 - altura_janela // 2
-        master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
 
 
 class Tela:
@@ -128,7 +45,7 @@ class Tela:
         self.centraliza(self.janela)
 
     def conectar_db(self):
-        self.conn = sqlite3.connect("usuarios.db")
+        self.conn = sqlite3.connect("Entregai.db")
         self.cursor = self.conn.cursor()
         self.cursor.execute(
             'CREATE TABLE IF NOT EXISTS usuarios ('
@@ -274,6 +191,88 @@ class Tela:
         x = largura_monitor // 2 - largura_janela // 2
         y = altura_monitor // 2 - altura_janela // 2
         master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
+
+class TelaAdmin:
+    # (O código da TelaAdmin permanece o mesmo da versão anterior, sem alterações)
+    def __init__(self, master, conn, cursor):
+        self.janela = master
+        self.conn = conn
+        self.cursor = cursor
+        self.janela.title("Área Administrativa - Usuários Cadastrados")
+        self.janela.geometry("700x500")
+
+        ttk.Label(self.janela, text="Usuários Cadastrados").pack(pady=10)
+
+        self.tree = ttk.Treeview(
+            self.janela,
+            columns=('ID', 'Nome', 'CPF', 'Email'),
+            show='headings',
+            bootstyle="primary"
+        )
+        self.tree.heading('ID', text='ID', anchor=W)
+        self.tree.heading('Nome', text='Nome', anchor=W)
+        self.tree.heading('CPF', text='CPF', anchor=W)
+        self.tree.heading('Email', text='Email', anchor=W)
+
+        self.tree.column('ID', width=30, anchor=CENTER)
+        self.tree.column('Nome', width=150, anchor=W)
+        self.tree.column('CPF', width=100, anchor=W)
+        self.tree.column('Email', width=200, anchor=W)
+
+        self.tree.pack(fill='both', expand=True, padx=10, pady=10)
+
+        frm_botoes_admin = ttk.Frame(self.janela)
+        frm_botoes_admin.pack(pady=10)
+
+        btn_excluir = ttk.Button(frm_botoes_admin, text="Excluir Selecionado",
+                                 bootstyle="danger", command=self.excluir_usuario)
+        btn_excluir.pack(side=LEFT, padx=5)
+
+        self.carregar_usuarios()
+        self.centraliza(self.janela)
+
+    def excluir_usuario(self):
+        item_selecionado = self.tree.selection()
+
+        if len(item_selecionado) > 0:
+            usuario_id = self.tree.item(item_selecionado, 'values')[0]
+            confirmacao = messagebox.askyesno(
+                "Confirmação", "Tem certeza que deseja excluir o usuário selecionado?")
+
+            if confirmacao:
+                self.cursor.execute(
+                    "DELETE FROM usuarios WHERE id=?", (usuario_id,))
+                self.conn.commit()
+                self.tree.delete(item_selecionado)
+                messagebox.showinfo("Sucesso", "Usuário excluído com sucesso.")
+        else:
+            messagebox.showwarning(
+                'Aviso', 'Por favor, selecione um usuário para excluir.')
+
+    def carregar_usuarios(self):
+        for i in self.tree.get_children():
+            self.tree.delete(i)
+
+        try:
+            self.cursor.execute("SELECT id, nome, cpf, email FROM usuarios")
+            usuarios = self.cursor.fetchall()
+
+            for i in usuarios:
+                self.tree.insert('', END, values=i)
+        except Exception as erro:
+            messagebox.showerror("Erro no Banco de Dados",
+                                 f"Não foi possível carregar os usuários: {erro}")
+
+    def centraliza(self, master):
+        largura_monitor = master.winfo_screenwidth()
+        altura_monitor = master.winfo_screenheight()
+        master.update_idletasks()
+        largura_janela = master.winfo_width()
+        altura_janela = master.winfo_height()
+        x = largura_monitor // 2 - largura_janela // 2
+        y = altura_monitor // 2 - altura_janela // 2
+        master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
+
 
 
 class TelaCardapio:

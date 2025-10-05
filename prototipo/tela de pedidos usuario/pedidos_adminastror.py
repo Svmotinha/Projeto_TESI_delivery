@@ -132,7 +132,7 @@ class Tela:
         self.centraliza(self.janela)
 
     def conectar_db(self):
-        self.conn = sqlite3.connect("usuarios.db")
+        self.conn = sqlite3.connect("Entregai.db")
         self.cursor = self.conn.cursor()
         self.cursor.execute('PRAGMA foreign_keys = ON;') # Habilitar chaves estrangeiras
         self.cursor.execute(
@@ -616,7 +616,7 @@ class TelaAdminPedidos:
         self.detalhes_texto = tk.Text(self.frm_detalhes, height=10, state=DISABLED, font=("Courier", 9))
         self.detalhes_texto.pack(fill=BOTH, expand=True, padx=10, pady=10)
         
-        frm_acoes = ttk.Frame(self.frm_detalhes)
+        frm_acoes = tk.Frame(self.frm_detalhes)
         frm_acoes.pack(fill=X, padx=10, pady=10)
 
         ttk.Label(frm_acoes, text="Mudar status para:").pack(side=LEFT)
