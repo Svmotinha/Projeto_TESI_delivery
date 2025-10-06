@@ -3,12 +3,11 @@ from tkinter import messagebox
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sqlite3
-from PIL import Image, ImageTk # Necessário: pip install Pillow
+from PIL import Image, ImageTk
 import os
 import json
 from datetime import datetime
 
-# --- CREDENCIAIS DO ADMINISTRADOR ---
 ADMIN_EMAIL = "admin@"
 ADMIN_SENHA = "admin123"
 
@@ -969,7 +968,6 @@ class TelaHistorico:
         y = altura_monitor // 2 - altura_janela // 2
         master.geometry(f'{largura_janela}x{altura_janela}+{x}+{y}')
 
-if __name__ == "__main__":
-    app = ttk.Window(themename='darkly')
-    Tela(app)
-    app.mainloop()
+app = ttk.Window(themename='darkly')
+Tela(app)
+app.mainloop()
