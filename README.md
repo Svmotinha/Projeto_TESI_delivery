@@ -1,2 +1,2 @@
-# Projeto_TESI_delivery
-Criar um app de delivery para desktop em python
+# Projeto_TESI_delivery_Desktop
+APP de delivery para desktop em python
